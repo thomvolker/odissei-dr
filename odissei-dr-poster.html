@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+
+<title>Distribution comparison with the densityratio R-package</title>
+
+
+
+
+<style type="text/css">pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */</style>
+
+
+<!--
+Font-awesome icons ie github or twitter
+-->
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/brands.css" integrity="sha384-n9+6/aSqa9lBidZMRCQHTHKJscPq6NW4pCQBiMmHdUCvPN8ZOg2zJJTkC7WIezWv" crossorigin="anonymous">
+
+<!--
+Google fonts api stuff
+-->
+<link href='https://fonts.googleapis.com/css?family=Special Elite' rel='stylesheet'>
+<link href='https://fonts.googleapis.com/css?family=Rasa' rel='stylesheet'>
+
+<!--
+Here are the required style attributes for css to make this poster work :)
+-->
+<style>
+@page {
+size: 36in 48in;
+margin: 0;
+padding: 0;
+}
+body {
+margin: 0px;
+padding: 0px;
+width: 36in;
+height: 48in;
+text-align: justify;
+font-size: 45px;
+line-height: 1.05;
+}
+/* RMarkdown Class Styles */
+/* center align leaflet map,
+from https://stackoverflow.com/questions/52112119/center-leaflet-in-a-rmarkdown-document */
+.html-widget {
+margin: auto;
+position: sticky;
+margin-top: 2cm;
+margin-bottom: 2cm;
+}
+.leaflet.html-widget.html-widget-static-bound.leaflet-container.leaflet-touch.leaflet-fade-anim.leaflet-grab.leaflet-touch-drag.leaflet-touch-zoom {
+position: sticky;
+width: 100%;
+}
+pre.sourceCode.r {
+background-color: #dddddd40;
+border-radius: 4mm;
+padding: 4mm;
+width: 75%;
+margin: auto;
+margin-top: 1em;
+margin-bottom: 1em;
+/* align-items: center; */
+}
+code.sourceCode.r{
+background-color: transparent;
+font-size: 20pt;
+border-radius: 2mm;
+}
+code {
+font-size: 25pt;
+font-family: monospace;
+background-color: #0e808e24;
+color: #034e57;
+padding: 1.2mm;
+line-height: 1;
+border-radius: 2mm;
+}
+caption {
+margin-bottom: 10px;
+font-size: 20pt;
+font-style: italic;
+}
+
+tbody tr:nth-child(odd) {
+    background-color: #0e808e20;
+}
+.table>thead>tr>th, .table>tbody>tr>th, .table>tfoot>tr>th, .table>thead>tr>td, .table>tbody>tr>td, .table>tfoot>tr>td{
+  border-spacing: 0;
+  font-size: 40%;
+  border-style: none;
+  padding-top: 15px;
+  padding-bottom: 15px;
+  padding-right: 1em;
+  padding-left: 1em;
+  line-height: 1em;
+}
+table {
+  margin: auto;
+}
+th {
+  padding-left: 5mm;
+  padding-right: 5mm;
+}
+.caption {
+font-size: 20pt;
+font-style: italic;
+padding-top: 0;
+}
+.references {
+font-size: 20px;
+line-height: 90%;
+}
+/* Create three unequal columns that floats next to each other */
+.column {
+float: left;
+padding: 0px;
+}
+.outer {
+width: 36in;
+height: calc(48in *  (1 - 0.14 - 9.5e-2 - 0.01) );
+-webkit-column-count: 3; /* Chrome, Safari, Opera */
+-moz-column-count: 3; /* Firefox */
+column-count: 3;
+-webkit-column-fill: auto;
+-moz-column-fill: auto;
+column-fill: auto;
+column-gap: 0;
+padding-left: 0cm;
+padding-right: 0cm;
+/* -webkit-column-rule-width: 50%;
+-moz-column-rule-width: 50%;
+column-rule-width: 50%; */
+-webkit-column-rule-style: none;
+-moz-column-rule-style: none;
+column-rule-style: none;
+-webkit-column-rule-color: black;
+-moz-column-rule-color: black;
+column-rule-color: black;
+background-color: #ffffff;
+font-family: Rasa;
+margin-top: calc(48in *  0.14 );
+padding-top: 1em;
+padding-bottom: 1em;
+}
+span.citation {
+  color: #0e808e;
+  font-weight: bold;
+}
+a {
+text-decoration: none;
+color: #0e808e;
+}
+#title {
+font-size: 125pt;
+text-align: left;
+margin: 0;
+line-height: 98%;
+border-bottom: 0;
+font-weight: normal;
+background: 0;
+}
+#author {
+color: #034e57;
+margin: 0;
+line-height: 85%;
+font-size: 1.17em;
+}
+#affiliation {
+padding-top: 0.1em;
+color: ;
+font-style: italic;
+font-size: 25px;
+margin: 0;
+}
+sup {
+color: #de0277;
+}
+.affiliation sup {
+font-size: 20px;
+}
+.author {
+text-align: left;
+}
+.author sup {
+font-size: 30px;
+}
+.author_extra {
+color: #0e808e;
+margin: 0;
+line-height: 85%;
+font-size: 35px;
+text-align: left;
+}
+.outer h1, h2, h3, h4, h5, h6 {
+text-align: center;
+margin: 0;
+font-weight: bold;
+}
+.section h1 {
+  text-align:center;
+  padding-bottom:5px;
+  background:
+    linear-gradient(
+      to left,
+      #ffffff 1%,
+      #ffffff 20%,
+      #034e5775 33%,
+      #034e57 50%,
+      #034e5775 66%,
+      #ffffff 80%,
+      #ffffff 99%
+    )
+    left
+    bottom
+    #ffffff
+    no-repeat;
+  background-size:100% 5px ;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+.outer h2 {
+text-align: center;
+}
+.outer p, .level2 {
+color: #000000;
+}
+.outer ol {
+padding-left: 8%;
+padding-right: 8%;
+text-align: left;
+}
+.main {
+width: 36in;
+height: calc(48in * 0.14);
+position: absolute;
+background-color: #034e57;
+color: #ffffff90;
+font-family: Special Elite;
+background-image: linear-gradient(#034e57 50%,#0e808e);
+}
+.main strong {
+color: #ffffff;
+}
+.main strong > sup {
+color: #ffffff;
+}
+.main sup {
+color: #ffffff90;
+}
+#main-img-left {
+width: 10%;
+left: 0.5in;
+bottom: 0.2in;
+position: absolute;
+}
+#main-img-center {
+width: 10%;
+left: calc(36in * 0.45);
+bottom: 0.5in;
+position: absolute;
+}
+#main-img-right {
+width: 10%;
+right: 0.5in;
+bottom: 0.2in;
+position: absolute;
+}
+.main p {
+font-size: 150px;
+font-family: Special Elite;
+text-align: center;
+margin: 0;
+position: absolute;
+top: 50%;
+-ms-transform: translateY(-50%);
+transform: translateY(-50%);
+margin-left: 1em;
+}
+.fab {
+color: #00000030;
+font-size: 25px;
+}
+.twitter, i {
+color: #00000030;
+font-size: 35px;
+text-decoration: none;
+}
+a.email {
+text-decoration: none;
+color: #00000030;
+font-size: 35px;
+}
+.envelope {
+color: #00000030;
+font-size: 5px;
+text-decoration: none;
+}
+.poster_wrap {
+width: 36in;
+height: 48in;
+padding: 0cm;
+}
+.main_bottom {
+width: 36in;
+height: calc(48in * 9.5e-2);
+margin-top: calc(48in * (1 - 9.5e-2));
+position: absolute;
+background-color: #034e57;
+background-image: linear-gradient(#0e808e 10%, #034e57);
+}
+.section {
+  padding-left: 10mm;
+  padding-right: 10mm;
+}
+span > #tab:mytable {
+  font-weight: bold;
+}
+.orcid img {
+  width: 3%;
+}
+.emphasis {
+  background-color: #008080;
+  color: #ffffff;
+  border: solid #0b2045 3mm;
+  margin: 1em;
+  padding-left: 0;
+  padding-right: 0;
+}
+.emphasis h1 {
+  font-weight: bold;
+  background: none;
+  background-color: #0b2045;
+  padding-bottom: 5mm;
+  padding-top: 1mm;
+  margin-top: -1mm;
+  margin-right: -1mm;
+  margin-left: -1mm;
+}
+.emphasis blockquote {
+  border: 0;
+}
+.emphasis ol {
+  padding: 0;
+  padding-left: 8%;
+  font-size: 100%;
+  font-weight: bold;
+}
+.emphasis p {
+  color: #ffffff;
+}
+</style>
+</head>
+<body>
+
+
+<div class="poster_wrap">
+
+<div class="column outer">
+<div class="section">
+<h1 id="title">Distribution comparison with the <strong>densityratio</strong> R-package</h1><br>
+<h3 id="author" class="author">
+
+<strong>Thom Benjamin Volker</strong><sup> 1, 2</sup><br>
+
+<a class='envelope'><i class="fas fa-envelope"></i></a> <a href="mailto:t.b.volker@uu.nl" class="email">t.b.volker@uu.nl</a> <br>
+  </h3>
+
+<h5 id="author_extra", class="author_extra">
+ Carlos Poses<sup>3</sup>
+ Erik-Jan van Kesteren<sup>1</sup>
+</h5>
+
+
+<p id="affiliation" class="affiliation">
+<sup>1</sup> Department of Methodology and Statistics, Utrecht University<br> <sup>2</sup> Department of Methodology, Statistics Netherlands<br> <sup>3</sup> Department of Data Science and Biostatistics, University Medical Center Utrecht
+</p>
+</div>
+
+<style>
+p.caption {
+  font-size: 0.8em;
+}
+pre.sourceCode.r {
+  margin: auto;
+  margin-top: 0.3em;
+  margin-bottom: 0.3em;
+}
+#title {
+  font-size: 120pt;
+  text-align: left;
+  margin: 0;
+  line-height: 98%;
+  border-bottom: 0;
+  font-weight: normal;
+  background: 0;
+}
+</style>
+<div id="density-ratios" class="section level1">
+<h1>Density ratios</h1>
+<p>Density ratio estimation <span class="citation">(<a href="#ref-densityratiobook">Sugiyama, Suzuki, and Kanamori 2012</a>)</span> is an implicit workhorse in many machine learning tasks.
+Problems as varied as <strong>two-sample testing</strong>, <strong>classification</strong>, <strong>outlier detection</strong>, <strong>change-point detection</strong> in time-series and <strong>importance weighting</strong> under sample selection bias can be formulated as problems of density ratio estimation.
+The crucial element in these tasks is estimating to what extent and how the probability distributions of two groups differ.
+The density ratio, defined as
+<span class="math display">\[
+r(x) = \frac{p_\text{nu}(x)}{p_\text{de}(x)},
+\]</span>
+is a natural measure of this difference and can be interpreted as the <strong>relative likelihood of observing a data point under one distribution compared to another</strong>.</p>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:densityplot"></span>
+<img src="odissei-dr-poster_files/figure-html/densityplot-1.png" alt="Two different bivariate normal distributions on the left and their density ratio on the right (the true density ratio and the estimated density ratio)." width="100%" />
+<p class="caption">
+Figure 1: Two different bivariate normal distributions on the left and their density ratio on the right (the true density ratio and the estimated density ratio).
+</p>
+</div>
+<p>This intuition is visualized in Figure <a href="#fig:densityplot">1</a>.
+The left panel shows two bivariate normal distributions with parameters <span class="math inline">\(\mathbf{\mu}_\text{nu} = (0, 0)^T\)</span> and <span class="math inline">\(\mathbf{\Sigma}_\text{nu} = \begin{pmatrix}1 &amp; 0 \\ 0 &amp; 1\end{pmatrix}\)</span> for the numerator distribution and <span class="math inline">\(\mathbf{\mu}_\text{de} = (\frac 1 4, -\frac 1 4)^T\)</span> and <span class="math inline">\(\mathbf{\Sigma}_\text{de} = \begin{pmatrix}2 &amp; \frac 1 2 \\ \frac 1 2 &amp; 2\end{pmatrix}\)</span> for the denominator distribution.
+The right panel shows the corresponding density ratio function <span class="math inline">\(r(x)\)</span> and an estimate of the density ratio <span class="math inline">\(\hat{r}(x)\)</span> on the basis of <span class="math inline">\(n_\text{nu} = n_\text{de} = 1000\)</span> samples from each distribution.
+Despite impressive theoretical advances, density ratio estimation remains a non-trivial task, partly due to the lack of fast, flexible and user-friendly software implementations.
+To this end, we introduce the <code>densityratio</code> R-package <span class="citation">(<a href="#ref-densityratio">Volker, Poses, and van Kesteren 2024</a>)</span>.</p>
+</div>
+<div id="the-densityratio-package" class="section level1">
+<h1>The densityratio package</h1>
+<p>The <code>densityratio</code> package is a <strong>powerful</strong> and <strong>comprehensive</strong> toolbox for density ratio estimation, suitable for both beginners and experts.
+It provides <strong>state-of-the-art estimation methods</strong> with a consistent, user-friendly interface, all implemented with performance and accuracy in mind.
+To further simplify the workflow, the package includes <strong>built-in cross-validation</strong> for model selection and hyperparameter tuning, taking the guesswork out of fine-tuning and enabling users to achieve optimal results with minimal effort.
+As such, the <code>densityratio</code> package delivers <strong>convenience and precision</strong>, empowering users at every level.</p>
+</div>
+<div id="flexible-estimation" class="section level1">
+<h1>Flexible estimation</h1>
+<p>The <code>densityratio</code> package offers multiple estimation methods, tailored to different scenarios:</p>
+<ul>
+<li><code>kliep()</code>: minimizes the Kullback-Leibler divergence between the true and estimated density ratio</li>
+<li><code>ulsif()</code>: minimizes a squared loss function, which yields an analytical solution to the estimation problem</li>
+<li><code>lhss()</code>: extends <code>ulsif()</code> to estimate the density ratio in a subspace where the two distributions are most different</li>
+<li><code>spectral()</code>: spectral series estimator that estimates the density ratio in a lower-dimensional subspace</li>
+</ul>
+<p>All methods employ <strong>non-parametric kernel models</strong>, ensuring flexibility and adaptability to a range of functions.</p>
+</div>
+<div id="fast-and-efficient" class="section level1">
+<h1>Fast and efficient</h1>
+<p>The densityratio package is engineered for speed and efficiency.
+To achieve this, all resource-intensive operations are implemented in <code>C++</code> using the powerful <code>Rcpp</code> <span class="citation">(<a href="#ref-R-Rcpp">Eddelbuettel, Francois, Allaire, et al. 2024</a>)</span> and <code>RcppArmadillo</code> <span class="citation">(<a href="#ref-R-RcppArmadillo">Eddelbuettel, Francois, Bates, et al. 2024</a>)</span> libraries.
+Furthermore, the package leverages the OpenMP toolkit to enable parallel processing wherever possible.</p>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:computation"></span>
+<img src="odissei-dr-poster_files/figure-html/computation-1.png" alt="Computation times of **ulsif()** for different sample sizes and different numbers of variables." width="100%" />
+<p class="caption">
+Figure 2: Computation times of <strong>ulsif()</strong> for different sample sizes and different numbers of variables.
+</p>
+</div>
+<p>The computation time of <code>ulsif()</code>, for example, scales linearly with the sample size, and is hardly affected by the number of variables (Figure <a href="#fig:computation">2</a>).</p>
+</div>
+<div id="user-friendly" class="section level1">
+<h1>User-friendly</h1>
+<p>All estimation functions share a consistent interface and come with built-in cross-validation for <strong>automatic hyperparameter tuning</strong>, ensuring optimal performance with minimal user input.
+The package also includes helper functions that allow to summarize the output, perform hypothesis tests, predict density ratios for new data and visualize the results.</p>
+</div>
+<div id="densityratio-in-practice" class="section level1">
+<h1>densityratio in practice</h1>
+<p>We illustrate the <code>densityratio</code> package using the example from Figure <a href="#fig:densityplot">1</a>.
+We estimate the density ratio from <span class="math inline">\(n_\text{nu} = n_\text{de}=1000\)</span> samples using <code>ulsif()</code>, and evaluate whether the groups differ significantly.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(densityratio)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">ulsif</span>(nu, de)</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="fu">summary</span>(fit, <span class="at">test =</span> <span class="cn">TRUE</span>, <span class="at">parallel =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<pre><code>## Pearson divergence between P(nu) and P(de): 0.182
+## Pr(P(nu)=P(de)) &lt; .001</code></pre>
+<p>We see that it is very unlikely that the two groups of samples come from the same distribution. Subsequently, we can visualize the estimated density ratio function <span class="math inline">\(\hat{r}(x)\)</span> to see where the distributions differ the most (darker values indicate smaller density ratio values).</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">plot_bivariate</span>(fit)</span></code></pre></div>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:unnamed-chunk-6"></span>
+<img src="odissei-dr-poster_files/figure-html/unnamed-chunk-6-1.png" alt="Observed data for both variables with the density ratio values mapped to the color scale." width="100%" />
+<p class="caption">
+Figure 3: Observed data for both variables with the density ratio values mapped to the color scale.
+</p>
+</div>
+<p>Finally, it is simple to extract the estimated density ratio for new or existing data points. These values can be interpreted as importance weights, and can be used for various tasks, such as importance sampling or re-weighting.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">predict</span>(fit, newdat)</span></code></pre></div>
+<table class="kable_wrapper">
+<caption>
+<span id="tab:unnamed-chunk-8">Table 1: </span>Predicted density ratios for three example data points.
+</caption>
+<tbody>
+<tr>
+<td>
+<table>
+<thead>
+<tr>
+<th style="text-align:right;">
+<span class="math inline">\(~~\mathbf{x_1}\)</span>
+</th>
+<th style="text-align:right;">
+<span class="math inline">\(~~\mathbf{x_2}\)</span>
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+-4
+</td>
+<td style="text-align:right;">
+-4.0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+1.5
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+<td>
+<table>
+<thead>
+<tr>
+<th style="text-align:right;">
+Density ratio
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+0.014
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+1.848
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+0.516
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="conclusion" class="section level1">
+<h1>Conclusion</h1>
+<p>The <code>densityratio</code> package combines state-of-the-art methods, user-friendly design, and high-performance computing to deliver a powerful tool for density ratio estimation.
+Using optimized <code>C++</code> implementations, parallel processing solutions, and built-in tools for model selection, the package makes density ratio estimation easily accessible.</p>
+</div>
+<div id="references" class="section level1 unnumbered">
+<h1>References</h1>
+<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="ref-R-Rcpp" class="csl-entry">
+Eddelbuettel, Dirk, Romain Francois, JJ Allaire, Kevin Ushey, Qiang Kou, Nathan Russell, Inaki Ucar, Douglas Bates, and John Chambers. 2024. <em>Rcpp: Seamless r and c++ Integration</em>. <a href="https://www.rcpp.org">https://www.rcpp.org</a>.
+</div>
+<div id="ref-R-RcppArmadillo" class="csl-entry">
+Eddelbuettel, Dirk, Romain Francois, Doug Bates, Binxiang Ni, and Conrad Sanderson. 2024. <em>RcppArmadillo: Rcpp Integration for the Armadillo Templated Linear Algebra Library</em>. <a href="https://github.com/RcppCore/RcppArmadillo">https://github.com/RcppCore/RcppArmadillo</a>.
+</div>
+<div id="ref-densityratiobook" class="csl-entry">
+Sugiyama, Masashi, Taiji Suzuki, and Takafumi Kanamori. 2012. <em>Density Ratio Estimation in Machine Learning</em>. Cambridge University Press. <a href="https://doi.org/10.1017/CBO9781139035613">https://doi.org/10.1017/CBO9781139035613</a>.
+</div>
+<div id="ref-R-posterdown" class="csl-entry">
+Thorne, Brent. 2019. <em>Posterdown: Generate PDF Conference Posters Using r Markdown</em>. <a href="https://github.com/brentthorne/posterdown">https://github.com/brentthorne/posterdown</a>.
+</div>
+<div id="ref-densityratio" class="csl-entry">
+Volker, Thom Benjamin, Carlos Poses, and Erik-Jan van Kesteren. 2024. <span>“Thomvolker/Densityratio: V0.0.1 Let’s Get It Started.”</span> Zenodo. <a href="https://doi.org/10.5281/zenodo.13881689">https://doi.org/10.5281/zenodo.13881689</a>.
+</div>
+</div>
+</div>
+
+</div>
+<div class="main">
+<p><strong>densityratio:</strong> Fast, efficient and user-friendly density ratio estimation in R</p>
+</div>
+<div class="main_bottom">
+<img id="main-img-left" src=logo.png>
+<img id="main-img-center" src=dr-package-qr.png>
+<img id="main-img-right" src=logo.png>
+</div>
+</div>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+var script = document.createElement("script");
+script.type = "text/javascript";
+var src = "true";
+if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+if (location.protocol !== "file:" && /^https?:/.test(src))
+src = src.replace(/^https?:/, '');
+script.src = src;
+document.getElementsByTagName("head")[0].appendChild(script);
+})();
+</script>
+
+
+</body>
+</html>

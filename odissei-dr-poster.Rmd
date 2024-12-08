@@ -1,0 +1,244 @@
+---
+main_topsize: 0.14 #percent coverage of the poster
+main_bottomsize: 0.095
+#ESSENTIALS
+title: 'Distribution comparison with the **densityratio** R-package'
+author:
+  - name: '**Thom Benjamin Volker**'
+    affil: 1, 2
+    main: true
+#    orcid: '0000-0002-2408-7820'
+    email: t.b.volker@uu.nl
+  - name: Carlos Poses
+    affil: 3
+    email: 'c.gonzalezposes-2@umcutrecht.nl'
+  - name: Erik-Jan van Kesteren
+    affil: 1
+    email: 'e.vankesteren1@uu.nl'
+affiliation:
+  - num: 1
+    address: Department of Methodology and Statistics, Utrecht University
+  - num: 2
+    address: Department of Methodology, Statistics Netherlands
+  - num: 3
+    address: Department of Data Science and Biostatistics, University Medical Center Utrecht
+main_findings:
+  - "**densityratio:** Fast, efficient and user-friendly density ratio estimation in R"
+logoleft_name: logo.png
+logoright_name: logo.png
+logocenter_name: dr-package-qr.png
+primary_colour: "#034e57"
+secondary_colour: "#0e808e"
+accent_colour: "#de0277"
+output: 
+  posterdown::posterdown_betterport:
+    self_contained: false
+    pandoc_args: --mathjax
+    number_sections: false
+bibliography: packages.bib
+link-citations: true
+nocite: "@R-posterdown"
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      warning = FALSE,
+                      tidy = FALSE,
+                      message = FALSE,
+                      fig.align = 'center',
+                      out.width = "100%")
+options(knitr.table.format = "html") 
+```
+
+<style>
+p.caption {
+  font-size: 0.8em;
+}
+pre.sourceCode.r {
+  margin: auto;
+  margin-top: 0.3em;
+  margin-bottom: 0.3em;
+}
+#title {
+  font-size: 120pt;
+  text-align: left;
+  margin: 0;
+  line-height: 98%;
+  border-bottom: 0;
+  font-weight: normal;
+  background: 0;
+}
+</style>
+
+# Density ratios
+
+Density ratio estimation [@densityratiobook] is an implicit workhorse in many machine learning tasks. 
+Problems as varied as **two-sample testing**, **classification**, **outlier detection**, **change-point detection** in time-series and **importance weighting** under sample selection bias can be formulated as problems of density ratio estimation.
+The crucial element in these tasks is estimating to what extent and how the probability distributions of two groups differ.
+The density ratio, defined as
+$$
+r(x) = \frac{p_\text{nu}(x)}{p_\text{de}(x)},
+$$
+is a natural measure of this difference and can be interpreted as the **relative likelihood of observing a data point under one distribution compared to another**.
+
+```{r}
+#source("script.R")
+```
+
+```{r densityplot, fig.cap = "Two different bivariate normal distributions on the left and their density ratio on the right (the true density ratio and the estimated density ratio).", fig.height=3.2}
+library(magick)
+library(ggplot2)
+library(patchwork)
+p1 <- image_read("densities.png") |>
+  image_crop(geometry = "900x900+300+100") |>
+  image_ggplot(interpolate = TRUE) +
+  theme(plot.margin=grid::unit(c(-5,0,-30,0), "mm"))
+  
+p2 <- image_read("densityratioplot.png") |>
+  image_crop(geometry = "900x900+300+100") |>
+  image_ggplot(interpolate = TRUE) +
+  theme(plot.margin=grid::unit(c(-5,0,-30,0), "mm"))
+
+patchwork::wrap_plots(p1, p2, ncol = 2) +
+  theme(plot.margin=grid::unit(c(-10,0,-30,0), "mm"))
+  
+```
+This intuition is visualized in Figure \@ref(fig:densityplot). 
+The left panel shows two bivariate normal distributions with parameters $\mathbf{\mu}_\text{nu} = (0, 0)^T$ and $\mathbf{\Sigma}_\text{nu} = \begin{pmatrix}1 & 0 \\ 0 & 1\end{pmatrix}$ for the numerator distribution and $\mathbf{\mu}_\text{de} = (\frac 1 4, -\frac 1 4)^T$ and $\mathbf{\Sigma}_\text{de} = \begin{pmatrix}2 & \frac 1 2 \\ \frac 1 2 & 2\end{pmatrix}$ for the denominator distribution.
+The right panel shows the corresponding density ratio function $r(x)$ and an estimate of the density ratio $\hat{r}(x)$ on the basis of $n_\text{nu} = n_\text{de} = 1000$ samples from each distribution.
+Despite impressive theoretical advances, density ratio estimation remains a non-trivial task, partly due to the lack of fast, flexible and user-friendly software implementations. 
+To this end, we introduce the `densityratio` R-package [@densityratio]. 
+
+# The densityratio package
+
+The `densityratio` package is a **powerful** and **comprehensive** toolbox for density ratio estimation, suitable for both beginners and experts. 
+It provides **state-of-the-art estimation methods** with a consistent, user-friendly interface, all implemented with performance and accuracy in mind. 
+To further simplify the workflow, the package includes **built-in cross-validation** for model selection and hyperparameter tuning, taking the guesswork out of fine-tuning and enabling users to achieve optimal results with minimal effort.
+As such, the `densityratio` package delivers **convenience and precision**, empowering users at every level.
+
+# Flexible estimation
+
+The `densityratio` package offers multiple estimation methods, tailored to different scenarios:
+
+- `kliep()`: minimizes the Kullback-Leibler divergence between the true and estimated density ratio
+- `ulsif()`: minimizes a squared loss function, which yields an analytical solution to the estimation problem
+- `lhss()`: extends `ulsif()` to estimate the density ratio in a subspace where the two distributions are most different
+- `spectral()`: spectral series estimator that estimates the density ratio in a lower-dimensional subspace
+
+All methods employ **non-parametric kernel models**, ensuring flexibility and adaptability to a range of functions.
+
+# Fast and efficient
+
+The densityratio package is engineered for speed and efficiency. 
+To achieve this, all resource-intensive operations are implemented in `C++` using the powerful `Rcpp` [@R-Rcpp] and `RcppArmadillo` [@R-RcppArmadillo] libraries. 
+Furthermore, the package leverages the OpenMP toolkit to enable parallel processing wherever possible.
+
+```{r computation, fig.cap = "Computation times of **ulsif()** for different sample sizes and different numbers of variables.", fig.height=3.2}
+computation_times <- readRDS("computation_times.rds")
+
+ggplot(NULL, aes(x = computation_times$n, y = computation_times$n_times)) +
+  geom_point(size = 2, col = "#034e57") +
+  geom_line(col = "#034e57") +
+  theme_minimal() +
+  labs(x = "Number of samples per group", y = "Computation time (s)") +
+ggplot(NULL, aes(x = computation_times$dim, y = computation_times$dim_times)) +
+  geom_point(size = 2, col = "#034e57") +
+  geom_line(col = "#034e57") +
+  theme_minimal() +
+  labs(x = "Number of variables", y = "Computation time (s)") +
+  ylim(0.8 * min(computation_times$dim_times), 
+       1.2 * max(computation_times$dim_times))
+
+```
+
+The computation time of `ulsif()`, for example, scales linearly with the sample size, and is hardly affected by the number of variables (Figure \@ref(fig:computation)).
+
+# User-friendly
+
+All estimation functions share a consistent interface and come with built-in cross-validation for **automatic hyperparameter tuning**, ensuring optimal performance with minimal user input.
+The package also includes helper functions that allow to summarize the output, perform hypothesis tests, predict density ratios for new data and visualize the results.
+
+# densityratio in practice
+
+We illustrate the `densityratio` package using the example from Figure \@ref(fig:densityplot).
+We estimate the density ratio from $n_\text{nu} = n_\text{de}=1000$ samples using `ulsif()`, and evaluate whether the groups differ significantly.
+
+
+```{r}
+library(densityratio)
+set.seed(123)
+N <- 1000
+P <- 2
+mu1 <- c(0, 0)
+mu2 <- c(0.25, -0.25)
+sigma1 <- diag(2)
+sigma2 <- matrix(c(2,0.5,0.5, 2),2)
+
+nu <- matrix(rnorm(N*P), ncol = 2) %*% chol(sigma1) + rep(1, N) %*% t(mu1)
+de <- matrix(rnorm(N*P), ncol = 2) %*% chol(sigma2) + rep(1, N) %*% t(mu2)
+```
+
+```{r}
+print.summary.ulsif <- function(x, ...) {
+  cat("Pearson divergence between P(nu) and P(de): ", paste(format(x$PE, 
+        digits = 3, ...)), "\n", sep = "")
+  cat("Pr(P(nu)=P(de))", ifelse(x$p_value < 0.001, paste(" < .001"), 
+                                paste(" = ", format(x$p_value, digits = 3, ...))), 
+            "\n\n", sep = "")
+}
+assignInNamespace("print.summary.ulsif", print.summary.ulsif, ns = "densityratio")
+```
+
+```{r walkthrough, echo = TRUE, cache = TRUE}
+library(densityratio)
+fit <- ulsif(nu, de)
+summary(fit, test = TRUE, parallel = TRUE)
+```
+
+We see that it is very unlikely that the two groups of samples come from the same distribution. Subsequently, we can visualize the estimated density ratio function $\hat{r}(x)$ to see where the distributions differ the most (darker values indicate smaller density ratio values).
+
+```{r, echo = TRUE, results = FALSE, fig.show='hide'}
+plot_bivariate(fit)
+```
+```{r, fig.cap="Observed data for both variables with the density ratio values mapped to the color scale.", fig.height = 3.2, fig.width=6, fig.pos="center"}
+plot_bivariate(fit)[[1]] +
+  scale_color_gradient(low = "#034e57", high = "#93effa") +
+  theme_minimal() +
+  ggtitle(NULL) +
+  xlab(expression(x[1])) +
+  ylab(expression(x[2]))
+```
+
+Finally, it is simple to extract the estimated density ratio for new or existing data points. These values can be interpreted as importance weights, and can be used for various tasks, such as importance sampling or re-weighting.
+
+```{r}
+newdat <- matrix(c(-4, 0, 2, -4, 0, 1.5), ncol = 2)
+```
+
+
+```{r predict, echo = TRUE, results='hide'}
+predict(fit, newdat)
+```
+
+```{r}
+colnames(newdat) <- c("$~~\\mathbf{x_1}$", "$~~\\mathbf{x_2}$")
+knitr::kable(
+  list(newdat, predict(fit, newdat |> unname())[,,1] |> matrix(dimnames = list(NULL, c("Density ratio")))),
+  caption = "Predicted density ratios for three example data points.",
+  booktabs = TRUE,
+  digits = 3
+)
+```
+
+
+# Conclusion
+
+The `densityratio` package combines state-of-the-art methods, user-friendly design, and high-performance computing to deliver a powerful tool for density ratio estimation. 
+Using optimized `C++` implementations, parallel processing solutions, and built-in tools for model selection, the package makes density ratio estimation easily accessible.
+
+
+
+# References
+
+
+
